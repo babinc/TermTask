@@ -1,0 +1,114 @@
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct TodoItem {
+    pub id: Uuid,
+    pub title: String,
+    pub description: Option<String>,
+    pub completed: bool,
+    pub created_at: DateTime<Utc>,
+    pub completed_at: Option<DateTime<Utc>>,
+    #[serde(skip)]
+    pub expanded: bool,
+}
+
+impl TodoItem {
+    pub fn new(title: String, description: Option<String>) -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            title,
+            description,
+            completed: false,
+            created_at: Utc::now(),
+            completed_at: None,
+            expanded: false,
+        }
+    }
+
+    pub fn toggle_completed(&mut self) {
+        self.completed = !self.completed;
+        if self.completed {
+            self.completed_at = Some(Utc::now());
+        } else {
+            self.completed_at = None;
+        }
+    }
+
+    pub fn toggle_expanded(&mut self) {
+        self.expanded = !self.expanded;
+    }
+
+    pub fn has_description(&self) -> bool {
+        self.description.as_ref().map_or(false, |desc| !desc.trim().is_empty())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct TodoList {
+    pub items: Vec<TodoItem>,
+}
+
+impl TodoList {
+    pub fn new() -> Self {
+        Self { items: Vec::new() }
+    }
+
+    pub fn add_todo(&mut self, title: String, description: Option<String>) {
+        let todo = TodoItem::new(title, description);
+        self.items.push(todo);
+    }
+
+    pub fn remove_todo(&mut self, id: &Uuid) -> bool {
+        if let Some(index) = self.items.iter().position(|item| &item.id == id) {
+            self.items.remove(index);
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn toggle_todo(&mut self, id: &Uuid) -> bool {
+        if let Some(item) = self.items.iter_mut().find(|item| &item.id == id) {
+            item.toggle_completed();
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn toggle_expanded(&mut self, id: &Uuid) -> bool {
+        if let Some(item) = self.items.iter_mut().find(|item| &item.id == id) {
+            item.toggle_expanded();
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn set_expanded(&mut self, id: &Uuid, expanded: bool) -> bool {
+        if let Some(item) = self.items.iter_mut().find(|item| &item.id == id) {
+            item.expanded = expanded;
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn get_active_todos(&self) -> Vec<&TodoItem> {
+        self.items.iter().filter(|item| !item.completed).collect()
+    }
+
+    pub fn get_completed_todos(&self) -> Vec<&TodoItem> {
+        self.items.iter().filter(|item| item.completed).collect()
+    }
+
+    pub fn get_todo_by_id(&self, id: &Uuid) -> Option<&TodoItem> {
+        self.items.iter().find(|item| &item.id == id)
+    }
+
+    pub fn get_todo_by_id_mut(&mut self, id: &Uuid) -> Option<&mut TodoItem> {
+        self.items.iter_mut().find(|item| &item.id == id)
+    }
+}

@@ -1,0 +1,96 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum ColorTheme {
+    CatppuccinMocha,
+    TokyoNight,
+    OneDark,
+    GruvboxDark,
+    Nord,
+}
+
+impl Default for ColorTheme {
+    fn default() -> Self {
+        ColorTheme::CatppuccinMocha
+    }
+}
+
+impl ColorTheme {
+    pub fn name(&self) -> &'static str {
+        match self {
+            ColorTheme::CatppuccinMocha => "Catppuccin Mocha",
+            ColorTheme::TokyoNight => "Tokyo Night",
+            ColorTheme::OneDark => "One Dark",
+            ColorTheme::GruvboxDark => "Gruvbox Dark",
+            ColorTheme::Nord => "Nord",
+        }
+    }
+
+    pub fn all() -> Vec<ColorTheme> {
+        vec![
+            ColorTheme::CatppuccinMocha,
+            ColorTheme::TokyoNight,
+            ColorTheme::OneDark,
+            ColorTheme::GruvboxDark,
+            ColorTheme::Nord,
+        ]
+    }
+
+    pub fn next(&self) -> ColorTheme {
+        match self {
+            ColorTheme::CatppuccinMocha => ColorTheme::TokyoNight,
+            ColorTheme::TokyoNight => ColorTheme::OneDark,
+            ColorTheme::OneDark => ColorTheme::GruvboxDark,
+            ColorTheme::GruvboxDark => ColorTheme::Nord,
+            ColorTheme::Nord => ColorTheme::CatppuccinMocha,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UISettings {
+    pub show_completed_count: bool,
+    pub auto_expand_descriptions: bool,
+    pub compact_mode: bool,
+    pub status_bar_visible: bool,
+    #[serde(default = "default_split_ratio")]
+    pub split_ratio: u16,
+    #[serde(default = "default_vim_mode")]
+    pub vim_mode: bool,
+}
+
+fn default_vim_mode() -> bool {
+    false
+}
+
+fn default_split_ratio() -> u16 {
+    50
+}
+
+impl Default for UISettings {
+    fn default() -> Self {
+        Self {
+            show_completed_count: true,
+            auto_expand_descriptions: false,
+            compact_mode: false,
+            status_bar_visible: true,
+            split_ratio: 50,
+            vim_mode: false,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppConfig {
+    pub theme: ColorTheme,
+    pub ui: UISettings,
+}
+
+impl Default for AppConfig {
+    fn default() -> Self {
+        Self {
+            theme: ColorTheme::default(),
+            ui: UISettings::default(),
+        }
+    }
+}
