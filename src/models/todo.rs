@@ -2,6 +2,12 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+const CURRENT_VERSION: u32 = 1;
+
+fn default_version() -> u32 {
+    CURRENT_VERSION
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TodoItem {
     pub id: Uuid,
@@ -47,12 +53,17 @@ impl TodoItem {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct TodoList {
+    #[serde(default = "default_version")]
+    pub version: u32,
     pub items: Vec<TodoItem>,
 }
 
 impl TodoList {
     pub fn new() -> Self {
-        Self { items: Vec::new() }
+        Self { 
+            version: CURRENT_VERSION,
+            items: Vec::new() 
+        }
     }
 
     pub fn add_todo(&mut self, title: String, description: Option<String>) {

@@ -24,8 +24,12 @@ impl JsonStore {
             return Ok(TodoList::new());
         }
 
-        let todo_list: TodoList = serde_json::from_str(&content)
+        let mut todo_list: TodoList = serde_json::from_str(&content)
             .with_context(|| format!("Failed to parse todo file: {}", self.file_path.display()))?;
+
+        if todo_list.version == 0 {
+            todo_list.version = 1;
+        }
 
         Ok(todo_list)
     }
