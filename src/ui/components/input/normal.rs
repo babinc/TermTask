@@ -238,7 +238,7 @@ impl NormalInput {
         };
 
         let prompt_block = Block::default()
-            .title(" Prompt ")
+            .title(" Title ")
             .borders(Borders::ALL)
             .border_set(ratatui::symbols::border::Set {
                 top_left: prompt_border_chars[4],
@@ -287,7 +287,7 @@ impl NormalInput {
         };
 
         let results_block = Block::default()
-            .title(" Results ")
+            .title(" Description ")
             .borders(Borders::ALL)
             .border_set(ratatui::symbols::border::Set {
                 top_left: results_border_chars[4],
@@ -320,8 +320,8 @@ impl NormalInput {
         // Status line
         let mode_indicator = if self.is_editing { "[EDIT]" } else { "[INSERT]" };
         let help_text = match self.mode {
-            InputMode::Title => format!("{} <C-Enter>/<C-s> Save | <Enter> Next | <Esc> Close", mode_indicator),
-            InputMode::Description => format!("{} <C-Enter>/<C-s> Save | <Enter> Newline | <Esc> Close", mode_indicator),
+            InputMode::Title => format!("{} <C-Enter>/<C-s> Save | <Enter>/<Tab> Next | <Esc> Close", mode_indicator),
+            InputMode::Description => format!("{} <C-Enter>/<C-s> Save | <Enter> Newline | <Tab> Back to Title | <Esc> Close", mode_indicator),
         };
 
         let status_line = Paragraph::new(help_text)

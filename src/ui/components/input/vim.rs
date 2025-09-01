@@ -575,7 +575,7 @@ impl VimInput {
         };
 
         let prompt_block = Block::default()
-            .title(" Prompt ")
+            .title(" Title ")
             .borders(Borders::ALL)
             .border_set(ratatui::symbols::border::Set {
                 top_left: prompt_border_chars[4],
@@ -630,7 +630,7 @@ impl VimInput {
         };
 
         let results_block = Block::default()
-            .title(" Results ")
+            .title(" Description ")
             .borders(Borders::ALL)
             .border_set(ratatui::symbols::border::Set {
                 top_left: results_border_chars[4],

@@ -1,4 +1,4 @@
-use crate::models::ColorTheme;
+use crate::models::{ColorTheme, DateFormat};
 use crate::ui::themes::{ThemeStyles, ThemeColors};
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
@@ -10,6 +10,7 @@ use ratatui::{
 #[derive(Debug, Clone)]
 pub enum SettingItem {
     Theme(ColorTheme),
+    DateFormat(DateFormat),
     VimMode(bool),
     CompactMode(bool),
 }
@@ -18,6 +19,7 @@ impl SettingItem {
     fn display(&self) -> String {
         match self {
             SettingItem::Theme(theme) => format!("Theme: {}", theme.name()),
+            SettingItem::DateFormat(format) => format!("Date Format: {}", format.name()),
             SettingItem::VimMode(enabled) => format!("Vim Mode: {}", if *enabled { "Enabled" } else { "Disabled" }),
             SettingItem::CompactMode(enabled) => format!("Compact Mode: {}", if *enabled { "Enabled" } else { "Disabled" }),
         }
@@ -29,28 +31,33 @@ pub struct SettingsModal {
     pub selected_index: usize,
     settings: Vec<SettingItem>,
     themes: Vec<ColorTheme>,
+    date_formats: Vec<DateFormat>,
 }
 
 impl SettingsModal {
     pub fn new() -> Self {
         let themes = ColorTheme::all();
+        let date_formats = DateFormat::all();
         Self {
             active: false,
             selected_index: 0,
             settings: vec![
                 SettingItem::Theme(themes[0].clone()),
+                SettingItem::DateFormat(date_formats[0].clone()),
                 SettingItem::VimMode(false),
                 SettingItem::CompactMode(false),
             ],
             themes,
+            date_formats,
         }
     }
 
-    pub fn open(&mut self, current_theme: &ColorTheme, vim_mode: bool, compact_mode: bool) {
+    pub fn open(&mut self, current_theme: &ColorTheme, date_format: &DateFormat, vim_mode: bool, compact_mode: bool) {
         self.active = true;
         self.selected_index = 0;
         self.settings = vec![
             SettingItem::Theme(current_theme.clone()),
+            SettingItem::DateFormat(date_format.clone()),
             SettingItem::VimMode(vim_mode),
             SettingItem::CompactMode(compact_mode),
         ];
@@ -82,6 +89,14 @@ impl SettingsModal {
                 let next_index = (current_index + 1) % self.themes.len();
                 *current_theme = self.themes[next_index].clone();
             }
+            SettingItem::DateFormat(current_format) => {
+                let current_index = self.date_formats
+                    .iter()
+                    .position(|f| f == current_format)
+                    .unwrap_or(0);
+                let next_index = (current_index + 1) % self.date_formats.len();
+                *current_format = self.date_formats[next_index].clone();
+            }
             SettingItem::VimMode(enabled) => {
                 *enabled = !*enabled;
             }
@@ -107,6 +122,15 @@ impl SettingsModal {
             }
         }
         false
+    }
+
+    pub fn get_date_format(&self) -> DateFormat {
+        for setting in &self.settings {
+            if let SettingItem::DateFormat(format) = setting {
+                return format.clone();
+            }
+        }
+        DateFormat::default()
     }
 
     pub fn get_compact_mode(&self) -> bool {

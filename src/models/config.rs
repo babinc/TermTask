@@ -1,6 +1,40 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum DateFormat {
+    AmPm12Hour,
+    Hour24,
+    Iso8601,
+    Relative,
+}
+
+impl Default for DateFormat {
+    fn default() -> Self {
+        DateFormat::AmPm12Hour
+    }
+}
+
+impl DateFormat {
+    pub fn name(&self) -> &'static str {
+        match self {
+            DateFormat::AmPm12Hour => "12-hour (2:33 pm)",
+            DateFormat::Hour24 => "24-hour (14:33)",
+            DateFormat::Iso8601 => "ISO 8601 (2024-03-15 14:33)",
+            DateFormat::Relative => "Relative (2 hours ago)",
+        }
+    }
+
+    pub fn all() -> Vec<DateFormat> {
+        vec![
+            DateFormat::AmPm12Hour,
+            DateFormat::Hour24,
+            DateFormat::Iso8601,
+            DateFormat::Relative,
+        ]
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum ColorTheme {
     CatppuccinMocha,
     TokyoNight,
@@ -57,6 +91,8 @@ pub struct UISettings {
     pub split_ratio: u16,
     #[serde(default = "default_vim_mode")]
     pub vim_mode: bool,
+    #[serde(default)]
+    pub date_format: DateFormat,
 }
 
 fn default_vim_mode() -> bool {
@@ -76,6 +112,7 @@ impl Default for UISettings {
             status_bar_visible: true,
             split_ratio: 50,
             vim_mode: false,
+            date_format: DateFormat::default(),
         }
     }
 }

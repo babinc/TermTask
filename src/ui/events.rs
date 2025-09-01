@@ -21,11 +21,14 @@ pub enum AppEvent {
     IncreaseSplit,
     DecreaseSplit,
     SwitchPane,
+    GoToLeftPane,
+    GoToRightPane,
     Backspace,
     Left,
     Right,
     CtrlEnter,
     Save,
+    ShowHelp,
     Char(char),
 }
 
@@ -72,6 +75,7 @@ impl EventHandler {
             KeyCode::Esc => Some(AppEvent::Escape),
             KeyCode::Char('t') => Some(AppEvent::ToggleTheme),
             KeyCode::Char('s') => Some(AppEvent::OpenSettings),
+            KeyCode::Char('?') => Some(AppEvent::ShowHelp),
             KeyCode::Char('+') => Some(AppEvent::AddTodo),
             KeyCode::Char('e') => Some(AppEvent::ToggleExpand),
             KeyCode::Char('E') => Some(AppEvent::ExpandAll),

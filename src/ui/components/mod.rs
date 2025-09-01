@@ -1,5 +1,6 @@
 pub mod add_todo_modal;
 pub mod confirmation;
+pub mod help_modal;
 pub mod input;
 pub mod settings;
 pub mod toast;
@@ -9,6 +10,7 @@ pub mod vim_indicator;
 
 pub use add_todo_modal::{AddTodoModal, TodoModalMode};
 pub use confirmation::{ConfirmationModal, ConfirmationAction};
+pub use help_modal::HelpModal;
 pub use input::{InputHandler, NormalInput, VimInput};
 pub use unified_modal::UnifiedModal;
 pub use vim_indicator::VimIndicator;

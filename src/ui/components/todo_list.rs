@@ -1,4 +1,5 @@
-use crate::models::{TodoItem, TodoList};
+use crate::models::{TodoItem, TodoList, format_datetime};
+use crate::models::config::DateFormat;
 use crate::ui::themes::{ThemeColors, ThemeStyles};
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
@@ -113,7 +114,7 @@ impl TodoListComponent {
         }
     }
 
-    pub fn render(&mut self, frame: &mut Frame, area: Rect, todos: &TodoList, styles: &ThemeStyles, is_active: bool, compact_mode: bool) {
+    pub fn render(&mut self, frame: &mut Frame, area: Rect, todos: &TodoList, styles: &ThemeStyles, is_active: bool, compact_mode: bool, date_format: &DateFormat) {
         let items = if self.show_completed {
             todos.get_completed_todos()
         } else {
@@ -146,9 +147,8 @@ impl TodoListComponent {
                     spans.push(Span::styled("✓ ", styles.completed));
                     spans.push(Span::styled(&todo.title, styles.completed));
                     
-                    // Show completion date for completed items
                     if let Some(completed_at) = todo.completed_at {
-                        let formatted_date = completed_at.format("%m/%d/%y %H:%M").to_string();
+                        let formatted_date = format_datetime(&completed_at, date_format);
                         spans.push(Span::styled(
                             format!(" ({})", formatted_date),
                             styles.muted

@@ -1,6 +1,7 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Local, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use crate::models::config::DateFormat;
 
 const CURRENT_VERSION: u32 = 1;
 
@@ -121,5 +122,31 @@ impl TodoList {
 
     pub fn get_todo_by_id_mut(&mut self, id: &Uuid) -> Option<&mut TodoItem> {
         self.items.iter_mut().find(|item| &item.id == id)
+    }
+}
+
+pub fn format_datetime(dt: &DateTime<Utc>, format: &DateFormat) -> String {
+    let local_dt = dt.with_timezone(&Local);
+    
+    match format {
+        DateFormat::AmPm12Hour => local_dt.format("%-I:%M %p").to_string().to_lowercase(),
+        DateFormat::Hour24 => local_dt.format("%H:%M").to_string(),
+        DateFormat::Iso8601 => local_dt.format("%Y-%m-%d %H:%M").to_string(),
+        DateFormat::Relative => {
+            let now = Local::now();
+            let duration = now.signed_duration_since(local_dt);
+            
+            if duration.num_seconds() < 60 {
+                "just now".to_string()
+            } else if duration.num_minutes() < 60 {
+                format!("{} minutes ago", duration.num_minutes())
+            } else if duration.num_hours() < 24 {
+                format!("{} hours ago", duration.num_hours())
+            } else if duration.num_days() < 7 {
+                format!("{} days ago", duration.num_days())
+            } else {
+                local_dt.format("%Y-%m-%d").to_string()
+            }
+        }
     }
 }

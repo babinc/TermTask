@@ -3,7 +3,8 @@ use crate::models::{AppConfig, TodoList};
 use crate::prompt::{ProjectInitializer, TodoStorageChoice};
 use crate::storage::{ConfigStore, JsonStore};
 use crate::ui::{
-    components::{AddTodoModal, ConfirmationModal, ConfirmationAction, InputHandler, SettingsModal, TodoListComponent, ToastManager, VimIndicator},
+    components::{AddTodoModal, ConfirmationModal, ConfirmationAction, HelpModal, InputHandler, SettingsModal, TodoListComponent, ToastManager, VimIndicator},
+    components::input::{InputHandler as InputHandlerEnum, NormalInputMode, VimInputMode},
     themes::{ThemeColors, ThemeStyles},
     AppEvent,
 };
@@ -36,6 +37,7 @@ pub struct App {
     pub settings: SettingsModal,
     pub add_todo_modal: AddTodoModal,
     pub confirmation_modal: ConfirmationModal,
+    pub help_modal: HelpModal,
     pub toast_manager: ToastManager,
     pub should_quit: bool,
     json_store: JsonStore,
@@ -71,6 +73,7 @@ impl App {
             settings: SettingsModal::new(),
             add_todo_modal: AddTodoModal::new_with_vim_mode(vim_mode),
             confirmation_modal: ConfirmationModal::new(),
+            help_modal: HelpModal::new(),
             toast_manager: ToastManager::new(),
             should_quit: false,
             json_store,
@@ -210,6 +213,11 @@ impl App {
                             KeyCode::Enter => Some(AppEvent::Enter),
                             _ => None,
                         }
+                    } else if self.help_modal.active {
+                        match key.code {
+                            KeyCode::Esc | KeyCode::Char('?') => Some(AppEvent::Escape),
+                            _ => None,
+                        }
                     } else {
                         match key.code {
                             KeyCode::Char('c') if key.modifiers.contains(KeyModifiers::CONTROL) => {
@@ -224,6 +232,7 @@ impl App {
                             KeyCode::Esc => Some(AppEvent::Escape),
                             KeyCode::Char('t') => Some(AppEvent::ToggleTheme),
                             KeyCode::Char('s') => Some(AppEvent::OpenSettings),
+                            KeyCode::Char('?') => Some(AppEvent::ShowHelp),
                             KeyCode::Char('+') => Some(AppEvent::AddTodo),
                             KeyCode::Char('e') => Some(AppEvent::ToggleExpand),
                             KeyCode::Char('E') => Some(AppEvent::ExpandAll),
@@ -232,6 +241,8 @@ impl App {
                             KeyCode::Char('=') => Some(AppEvent::IncreaseSplit),
                             KeyCode::Char('-') => Some(AppEvent::DecreaseSplit),
                             KeyCode::Tab => Some(AppEvent::SwitchPane),
+                            KeyCode::Char('h') | KeyCode::Left => Some(AppEvent::GoToLeftPane),
+                            KeyCode::Char('l') | KeyCode::Right => Some(AppEvent::GoToRightPane),
                             KeyCode::Char('z') if self.config.ui.vim_mode => Some(AppEvent::Char('z')),
                             KeyCode::Char('a') if self.config.ui.vim_mode => Some(AppEvent::Char('a')),
                             _ => None,
@@ -249,6 +260,10 @@ impl App {
 
         if self.settings.active {
             return self.handle_settings_event(event);
+        }
+
+        if self.help_modal.active {
+            return self.handle_help_event(event);
         }
 
         if self.add_todo_modal.active() {
@@ -271,6 +286,12 @@ impl App {
             AppEvent::Down => current_list.select_next(&self.todos),
             AppEvent::SwitchPane => {
                 self.active_pane = !self.active_pane;
+            }
+            AppEvent::GoToLeftPane => {
+                self.active_pane = true;
+            }
+            AppEvent::GoToRightPane => {
+                self.active_pane = false;
             }
             AppEvent::Space => {
                 if let Some(todo) = current_list.get_selected_todo(&self.todos) {
@@ -309,7 +330,10 @@ impl App {
                 self.toast_manager.info(format!("Theme: {}", self.config.theme.name()));
             }
             AppEvent::OpenSettings => {
-                self.settings.open(&self.config.theme, self.config.ui.vim_mode, self.config.ui.compact_mode);
+                self.settings.open(&self.config.theme, &self.config.ui.date_format, self.config.ui.vim_mode, self.config.ui.compact_mode);
+            }
+            AppEvent::ShowHelp => {
+                self.help_modal.open();
             }
             AppEvent::EditTodo => {
                 if let Some(todo) = current_list.get_selected_todo(&self.todos) {
@@ -541,6 +565,18 @@ impl App {
             AppEvent::Tab => {
                 if self.add_todo_modal.mode() == "Title" {
                     self.add_todo_modal.handle_enter();
+                } else if self.add_todo_modal.mode() == "Description" {
+                    // Switch back to title
+                    match &mut self.add_todo_modal.input_handler {
+                        InputHandlerEnum::Normal(input) => {
+                            input.mode = NormalInputMode::Title;
+                            input.cursor_position = input.title.len();
+                        }
+                        InputHandlerEnum::Vim(input) => {
+                            input.mode = VimInputMode::Title;
+                            input.cursor_position = input.title.len();
+                        }
+                    }
                 }
             }
             AppEvent::Char(c) => {
@@ -600,6 +636,14 @@ impl App {
     }
 
 
+    fn handle_help_event(&mut self, event: AppEvent) -> Result<()> {
+        match event {
+            AppEvent::Escape => self.help_modal.close(),
+            _ => {}
+        }
+        Ok(())
+    }
+
     fn handle_settings_event(&mut self, event: AppEvent) -> Result<()> {
         match event {
             AppEvent::Escape => self.settings.close(),
@@ -610,6 +654,7 @@ impl App {
                 let old_compact_mode = self.config.ui.compact_mode;
                 self.settings.toggle_selected();
                 self.config.theme = self.settings.get_theme();
+                self.config.ui.date_format = self.settings.get_date_format();
                 self.config.ui.vim_mode = self.settings.get_vim_mode();
                 self.config.ui.compact_mode = self.settings.get_compact_mode();
                 
@@ -643,19 +688,19 @@ impl App {
 
         let chunks = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Min(0), Constraint::Length(3), Constraint::Length(1), Constraint::Length(1)])
+            .constraints([Constraint::Length(1), Constraint::Min(0), Constraint::Length(1), Constraint::Length(1)])
             .split(frame.area());
 
         let split_ratio = self.config.ui.split_ratio;
         let main_chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(split_ratio), Constraint::Percentage(100 - split_ratio)])
-            .split(chunks[0]);
+            .split(chunks[1]);
 
         let mut active_list = self.active_list.clone();
         let mut completed_list = self.completed_list.clone();
-        active_list.render(frame, main_chunks[0], &self.todos, &styles, self.active_pane, self.config.ui.compact_mode);
-        completed_list.render(frame, main_chunks[1], &self.todos, &styles, !self.active_pane, self.config.ui.compact_mode);
+        active_list.render(frame, main_chunks[0], &self.todos, &styles, self.active_pane, self.config.ui.compact_mode, &self.config.ui.date_format);
+        completed_list.render(frame, main_chunks[1], &self.todos, &styles, !self.active_pane, self.config.ui.compact_mode, &self.config.ui.date_format);
 
 
         self.add_todo_modal.render(frame, frame.area(), &styles, &colors);
@@ -669,13 +714,17 @@ impl App {
                 "Tab/Enter Switch fields | Ctrl+Enter/Ctrl+S Save | Esc Cancel | Arrow keys Navigate"
             }
         } else {
-            "+: Add  r: Edit  Space: Toggle  e: Expand  d: Delete  Tab: Switch pane  ↑↓/jk: Navigate  t: Theme  s: Settings  =/-: Split  E: Expand all  C: Collapse all  q: Quit"
+            if self.config.ui.vim_mode {
+                "+ Add  r Edit  Space Toggle  e Expand  d Delete  Tab/hl Switch  jk Nav  t Theme  s Settings  ? Help  q Quit"
+            } else {
+                "+ Add  r Edit  Space Toggle  e Expand  d Delete  Tab/←→ Switch  ↑↓ Nav  t Theme  s Settings  ? Help  q Quit"
+            }
         };
 
         let help_paragraph = Paragraph::new(help_text)
-            .style(styles.help_text)
-            .block(Block::default().borders(Borders::TOP));
-        frame.render_widget(help_paragraph, chunks[1]);
+            .style(styles.help_text.bg(colors.modal_bg))
+            .wrap(ratatui::widgets::Wrap { trim: false });
+        frame.render_widget(help_paragraph, chunks[0]);
 
         let active_count = self.todos.get_active_todos().len();
         let completed_count = self.todos.get_completed_todos().len();
@@ -690,23 +739,24 @@ impl App {
             None // No vim mode indicator when just browsing
         };
         
+        let file_path_text = self.get_storage_context_display();
+        let file_path_paragraph = Paragraph::new(file_path_text)
+            .style(styles.muted.bg(colors.modal_bg))
+            .alignment(Alignment::Center);
+        frame.render_widget(file_path_paragraph, chunks[2]);
+
         VimIndicator::render_status_with_vim_mode(
             frame, 
-            chunks[2], 
+            chunks[3], 
             &styles, 
             &colors, 
             &status_text, 
             vim_mode
         );
 
-        let file_path_text = self.get_storage_context_display();
-        let file_path_paragraph = Paragraph::new(file_path_text)
-            .style(styles.muted)
-            .alignment(Alignment::Center);
-        frame.render_widget(file_path_paragraph, chunks[3]);
-
         self.toast_manager.render(frame, frame.area(), &styles, &colors);
         self.settings.render(frame, frame.area(), &styles, &colors);
+        self.help_modal.render(frame, frame.area(), &styles, &colors, self.config.ui.vim_mode);
         self.confirmation_modal.render(frame, frame.area(), &styles, &colors);
     }
 
