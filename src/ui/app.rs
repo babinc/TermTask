@@ -8,7 +8,7 @@ use crate::ui::{
     themes::{ThemeColors, ThemeStyles},
     AppEvent,
 };
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use anyhow::Result;
 use crossterm::{
     execute,
@@ -149,6 +149,10 @@ impl App {
 
             if crossterm::event::poll(std::time::Duration::from_millis(16))? {
                 if let crossterm::event::Event::Key(key) = crossterm::event::read()? {
+                    if key.kind != KeyEventKind::Press {
+                        continue;
+                    }
+                    
                     if let Some(app_event) = self.convert_key_event(key) {
                         self.handle_event(app_event)?;
                     }
@@ -157,6 +161,7 @@ impl App {
         }
         Ok(())
     }
+
 
     fn convert_key_event(&self, key: KeyEvent) -> Option<AppEvent> {
         if self.confirmation_modal.active {
