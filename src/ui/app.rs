@@ -729,8 +729,8 @@ impl App {
         let active_count = self.todos.get_active_todos().len();
         let completed_count = self.todos.get_completed_todos().len();
         let vim_status = if self.config.ui.vim_mode { "  Vim: On" } else { "" };
-        let status_text = format!("Active: {}  Completed: {}  Theme: {}{}", 
-                                 active_count, completed_count, self.config.theme.name(), vim_status);
+        let status_text = format!("TermTask {}  Active: {}  Completed: {}  Theme: {}{}", 
+                                 env!("CARGO_PKG_VERSION"), active_count, completed_count, self.config.theme.name(), vim_status);
         
         // Only show vim mode indicator when actually in input fields
         let vim_mode = if self.config.ui.vim_mode && self.input_handler.is_active() {
