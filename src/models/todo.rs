@@ -129,8 +129,10 @@ pub fn format_datetime(dt: &DateTime<Utc>, format: &DateFormat) -> String {
     let local_dt = dt.with_timezone(&Local);
     
     match format {
-        DateFormat::AmPm12Hour => local_dt.format("%-I:%M %p").to_string().to_lowercase(),
-        DateFormat::Hour24 => local_dt.format("%H:%M").to_string(),
+        DateFormat::AmPm12Hour => local_dt.format("%b %d %-I:%M %p").to_string().to_lowercase(),
+        DateFormat::AmPm12HourWithYear => local_dt.format("%b %d %Y %-I:%M %p").to_string().to_lowercase(),
+        DateFormat::Hour24 => local_dt.format("%b %d %H:%M").to_string(),
+        DateFormat::Hour24WithYear => local_dt.format("%b %d %Y %H:%M").to_string(),
         DateFormat::Iso8601 => local_dt.format("%Y-%m-%d %H:%M").to_string(),
         DateFormat::Relative => {
             let now = Local::now();
