@@ -1,4 +1,4 @@
-use crate::ui::themes::{ThemeStyles, ThemeColors};
+use crate::ui::styling::{ThemeStyles, ThemeColors};
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::Style,
@@ -17,11 +17,15 @@ pub struct KeyBinding {
 
 pub struct HelpModal {
     pub active: bool,
+    scroll_offset: usize,
 }
 
 impl HelpModal {
     pub fn new() -> Self {
-        Self { active: false }
+        Self {
+            active: false,
+            scroll_offset: 0,
+        }
     }
 
     pub fn open(&mut self) {
@@ -30,6 +34,17 @@ impl HelpModal {
 
     pub fn close(&mut self) {
         self.active = false;
+        self.scroll_offset = 0;
+    }
+
+    pub fn scroll_up(&mut self) {
+        if self.scroll_offset > 0 {
+            self.scroll_offset -= 1;
+        }
+    }
+
+    pub fn scroll_down(&mut self) {
+        self.scroll_offset += 1;
     }
 
     fn get_key_bindings(vim_mode: bool) -> Vec<KeyBinding> {
@@ -42,6 +57,7 @@ impl HelpModal {
             KeyBinding { key: "Enter", description: "Select/Edit item", category: "Navigation", vim_only: false, normal_only: false },
             KeyBinding { key: "+", description: "Add new todo", category: "Todo Management", vim_only: false, normal_only: false },
             KeyBinding { key: "r", description: "Edit selected todo", category: "Todo Management", vim_only: false, normal_only: false },
+            KeyBinding { key: "p", description: "Preview todo with markdown", category: "Todo Management", vim_only: false, normal_only: false },
             KeyBinding { key: "Space", description: "Toggle todo completion", category: "Todo Management", vim_only: false, normal_only: false },
             KeyBinding { key: "d", description: "Delete selected todo", category: "Todo Management", vim_only: false, normal_only: false },
             KeyBinding { key: "e", description: "Expand/collapse description", category: "Todo Management", vim_only: false, normal_only: false },
@@ -49,6 +65,7 @@ impl HelpModal {
             KeyBinding { key: "C", description: "Collapse all descriptions", category: "View Options", vim_only: false, normal_only: false },
             KeyBinding { key: "=/+", description: "Increase split ratio", category: "View Options", vim_only: false, normal_only: false },
             KeyBinding { key: "-", description: "Decrease split ratio", category: "View Options", vim_only: false, normal_only: false },
+            KeyBinding { key: "f", description: "Focus/zoom pane", category: "View Options", vim_only: false, normal_only: false },
             KeyBinding { key: "t", description: "Toggle theme quickly", category: "Settings", vim_only: false, normal_only: false },
             KeyBinding { key: "s", description: "Open settings modal", category: "Settings", vim_only: false, normal_only: false },
             KeyBinding { key: "Tab/Enter", description: "Switch fields", category: "Modal Controls", vim_only: false, normal_only: true },
@@ -98,9 +115,9 @@ impl HelpModal {
             width,
             height,
         };
-        
+
         frame.render_widget(Clear, popup_area);
-        
+
         let modal_bg = Block::default()
             .style(Style::default().bg(colors.modal_bg));
         frame.render_widget(modal_bg, popup_area);
@@ -118,44 +135,62 @@ impl HelpModal {
             .title(" TermTask Help ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(colors.modal_border))
-            .style(styles.normal.bg(colors.modal_bg));
+            .style(Style::default().fg(colors.foreground).bg(colors.modal_bg));
 
         let mode_text = if vim_mode { "Keyboard shortcuts and commands (Vim Mode)" } else { "Keyboard shortcuts and commands (Normal Mode)" };
         let title_paragraph = Paragraph::new(mode_text)
             .block(title_block)
-            .style(styles.normal)
+            .style(Style::default().fg(colors.foreground).bg(colors.modal_bg))
             .alignment(Alignment::Center);
 
         frame.render_widget(title_paragraph, chunks[0]);
         let bindings = Self::get_key_bindings(vim_mode);
-        let mut content = String::new();
+        let mut content_lines = Vec::new();
         let mut current_category = "";
 
         for binding in bindings {
             if binding.category != current_category {
                 if !current_category.is_empty() {
-                    content.push('\n');
+                    content_lines.push(String::new());
                 }
-                content.push_str(&format!("{}:\n", binding.category));
+                content_lines.push(format!("{}:", binding.category));
                 current_category = binding.category;
             }
-            content.push_str(&format!("  {:12} - {}\n", binding.key, binding.description));
+            content_lines.push(format!("  {:12} - {}", binding.key, binding.description));
         }
+
+        let content_height = chunks[1].height as usize;
+        let total_lines = content_lines.len();
+        let visible_lines = content_height.saturating_sub(2);
+
+        let scroll_offset = self.scroll_offset.min(total_lines.saturating_sub(visible_lines));
+        let start = scroll_offset;
+        let end = (start + visible_lines).min(total_lines);
+        let visible_content = content_lines[start..end].join("\n");
+
+        let content = if total_lines > visible_lines {
+            format!("{}\n\n[{}/{}] Use ↑/↓ or j/k to scroll",
+                visible_content,
+                (start + visible_lines).min(total_lines),
+                total_lines)
+        } else {
+            visible_content
+        };
 
         let content_block = Block::default()
             .borders(Borders::LEFT | Borders::RIGHT | Borders::BOTTOM)
             .border_style(Style::default().fg(colors.modal_border))
-            .style(styles.normal.bg(colors.modal_bg));
+            .style(Style::default().fg(colors.foreground).bg(colors.modal_bg));
 
         let content_paragraph = Paragraph::new(content)
             .block(content_block)
-            .style(styles.normal)
+            .style(Style::default().fg(colors.foreground).bg(colors.modal_bg))
             .wrap(Wrap { trim: false });
 
         frame.render_widget(content_paragraph, chunks[1]);
         let footer_text = "Press Esc or ? to close";
         let footer_paragraph = Paragraph::new(footer_text)
-            .style(styles.muted)
+            .style(Style::default().fg(colors.muted).bg(colors.modal_bg))
             .alignment(Alignment::Center);
 
         frame.render_widget(footer_paragraph, chunks[2]);

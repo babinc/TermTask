@@ -61,9 +61,9 @@ pub struct TodoList {
 
 impl TodoList {
     pub fn new() -> Self {
-        Self { 
+        Self {
             version: CURRENT_VERSION,
-            items: Vec::new() 
+            items: Vec::new()
         }
     }
 
@@ -127,7 +127,7 @@ impl TodoList {
 
 pub fn format_datetime(dt: &DateTime<Utc>, format: &DateFormat) -> String {
     let local_dt = dt.with_timezone(&Local);
-    
+
     match format {
         DateFormat::AmPm12Hour => local_dt.format("%b %d %-I:%M %p").to_string().to_lowercase(),
         DateFormat::AmPm12HourWithYear => local_dt.format("%b %d %Y %-I:%M %p").to_string().to_lowercase(),
@@ -137,7 +137,7 @@ pub fn format_datetime(dt: &DateTime<Utc>, format: &DateFormat) -> String {
         DateFormat::Relative => {
             let now = Local::now();
             let duration = now.signed_duration_since(local_dt);
-            
+
             if duration.num_seconds() < 60 {
                 "just now".to_string()
             } else if duration.num_minutes() < 60 {

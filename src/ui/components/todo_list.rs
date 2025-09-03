@@ -1,11 +1,10 @@
 use crate::models::{TodoItem, TodoList, format_datetime};
 use crate::models::config::DateFormat;
-use crate::ui::themes::{ThemeColors, ThemeStyles};
+use crate::ui::styling::ThemeStyles;
 use ratatui::{
-    layout::{Constraint, Direction, Layout, Rect},
-    style::{Modifier, Style},
+    layout::Rect,
     text::{Line, Span, Text},
-    widgets::{Block, Borders, List, ListItem, ListState, Paragraph},
+    widgets::{Block, Borders, List, ListItem, ListState},
     Frame,
 };
 
@@ -134,7 +133,7 @@ impl TodoListComponent {
         let list_items: Vec<ListItem> = items
             .iter()
             .enumerate()
-            .map(|(index, todo)| {
+            .map(|(_index, todo)| {
                 let mut lines = vec![];
 
                 if !compact_mode {
@@ -146,7 +145,7 @@ impl TodoListComponent {
                 if todo.completed {
                     spans.push(Span::styled("✓ ", styles.completed));
                     spans.push(Span::styled(&todo.title, styles.completed));
-                    
+
                     if let Some(completed_at) = todo.completed_at {
                         let formatted_date = format_datetime(&completed_at, date_format);
                         spans.push(Span::styled(

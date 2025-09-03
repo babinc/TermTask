@@ -1,4 +1,4 @@
-use crate::ui::themes::{ThemeStyles, ThemeColors};
+use crate::ui::styling::{ThemeStyles, ThemeColors};
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::Style,
@@ -52,7 +52,7 @@ impl NormalInput {
         self.active = true;
         self.title = title.to_string();
         self.cursor_position = title.len();
-        
+
         if let Some(desc) = description {
             self.description = desc.lines().map(|s| s.to_string()).collect();
             if self.description.is_empty() {
@@ -61,7 +61,7 @@ impl NormalInput {
         } else {
             self.description = vec![String::new()];
         }
-        
+
         self.mode = InputMode::Title;
         self.current_line = 0;
         self.cursor_col = 0;
@@ -190,12 +190,11 @@ impl NormalInput {
         }
     }
 
-    pub fn render(&self, frame: &mut Frame, area: Rect, styles: &ThemeStyles, colors: &ThemeColors) {
+    pub fn render(&mut self, frame: &mut Frame, area: Rect, styles: &ThemeStyles, colors: &ThemeColors) {
         if !self.active {
             return;
         }
 
-        // Telescope-style dimensions and positioning
         let width = (area.width as f32 * 0.8) as u16;
         let height = (area.height as f32 * 0.6) as u16;
         let popup_area = Rect {
@@ -204,25 +203,22 @@ impl NormalInput {
             width,
             height,
         };
-        
+
         frame.render_widget(Clear, popup_area);
-        
-        // Render background for the entire modal
+
         let modal_bg = Block::default()
             .style(Style::default().bg(colors.modal_bg));
         frame.render_widget(modal_bg, popup_area);
 
-        // Telescope-style layout: Prompt at top, then results/input area
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Length(3),   // Prompt section (title input)
-                Constraint::Min(5),      // Results section (description)
-                Constraint::Length(1),   // Status line
+                Constraint::Length(3),
+                Constraint::Min(5),
+                Constraint::Length(1),
             ])
             .split(popup_area);
 
-        // Telescope-style prompt section
         let prompt_text = if matches!(self.mode, InputMode::Title) {
             let mut display_title = self.title.clone();
             display_title.insert(self.cursor_position, '_');
@@ -255,15 +251,14 @@ impl NormalInput {
             } else {
                 Style::default().fg(colors.border)
             })
-            .style(styles.normal.bg(colors.modal_bg));
+            .style(Style::default().fg(colors.foreground).bg(colors.modal_bg));
 
         let prompt_input = Paragraph::new(prompt_text)
             .block(prompt_block)
-            .style(styles.normal);
+            .style(Style::default().fg(colors.foreground).bg(colors.modal_bg));
 
         frame.render_widget(prompt_input, chunks[0]);
 
-        // Telescope-style results/description section
         let mut description_display = String::new();
         for (i, line) in self.description.iter().enumerate() {
             if i == self.current_line && matches!(self.mode, InputMode::Description) {
@@ -274,8 +269,7 @@ impl NormalInput {
                 description_display.push_str(&format!("  {}\n", line));
             }
         }
-        
-        // Add hint text if empty
+
         if self.description.len() == 1 && self.description[0].is_empty() && !matches!(self.mode, InputMode::Description) {
             description_display = "  Type description here (optional)...".to_string();
         }
@@ -304,7 +298,7 @@ impl NormalInput {
             } else {
                 Style::default().fg(colors.border)
             })
-            .style(styles.normal.bg(colors.modal_bg));
+            .style(Style::default().fg(colors.foreground).bg(colors.modal_bg));
 
         let description_paragraph = Paragraph::new(description_display)
             .block(results_block)
@@ -317,7 +311,6 @@ impl NormalInput {
 
         frame.render_widget(description_paragraph, chunks[1]);
 
-        // Status line
         let mode_indicator = if self.is_editing { "[EDIT]" } else { "[INSERT]" };
         let help_text = match self.mode {
             InputMode::Title => format!("{} <C-Enter>/<C-s> Save | <Enter>/<Tab> Next | <Esc> Close", mode_indicator),
@@ -325,7 +318,7 @@ impl NormalInput {
         };
 
         let status_line = Paragraph::new(help_text)
-            .style(styles.muted)
+            .style(Style::default().fg(colors.muted).bg(colors.modal_bg))
             .alignment(Alignment::Left);
 
         frame.render_widget(status_line, chunks[2]);

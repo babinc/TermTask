@@ -29,12 +29,15 @@ impl ThemeColors {
             ColorTheme::OneDark => Self::one_dark(),
             ColorTheme::GruvboxDark => Self::gruvbox_dark(),
             ColorTheme::Nord => Self::nord(),
+            ColorTheme::Monokai => Self::monokai(),
+            ColorTheme::SolarizedDark => Self::solarized_dark(),
+            ColorTheme::Dracula => Self::dracula(),
         }
     }
 
     fn catppuccin_mocha() -> Self {
         Self {
-            background: Color::Rgb(24, 24, 37),
+            background: Color::Rgb(30, 30, 46),
             foreground: Color::Rgb(205, 214, 244),
             primary: Color::Rgb(137, 180, 250),
             secondary: Color::Rgb(49, 50, 68),
@@ -46,11 +49,11 @@ impl ThemeColors {
             border: Color::Rgb(88, 91, 112),
             modal_bg: Color::Rgb(17, 17, 27),
             modal_border: Color::Rgb(137, 180, 250),
-            vim_normal_bg: Color::Rgb(137, 180, 250),    // Blue
-            vim_insert_bg: Color::Rgb(166, 227, 161),    // Green  
-            vim_visual_bg: Color::Rgb(203, 166, 247),    // Purple/Mauve
-            vim_command_bg: Color::Rgb(249, 226, 175),   // Yellow
-            vim_text: Color::Rgb(17, 17, 27),            // Dark text
+            vim_normal_bg: Color::Rgb(137, 180, 250),
+            vim_insert_bg: Color::Rgb(166, 227, 161),
+            vim_visual_bg: Color::Rgb(203, 166, 247),
+            vim_command_bg: Color::Rgb(249, 226, 175),
+            vim_text: Color::Rgb(17, 17, 27),
         }
     }
 
@@ -68,11 +71,11 @@ impl ThemeColors {
             border: Color::Rgb(52, 59, 88),
             modal_bg: Color::Rgb(16, 18, 25),
             modal_border: Color::Rgb(125, 207, 255),
-            vim_normal_bg: Color::Rgb(125, 207, 255),    // Cyan
-            vim_insert_bg: Color::Rgb(158, 206, 106),    // Green
-            vim_visual_bg: Color::Rgb(187, 154, 247),    // Purple
-            vim_command_bg: Color::Rgb(224, 175, 104),   // Orange
-            vim_text: Color::Rgb(16, 18, 25),            // Dark text
+            vim_normal_bg: Color::Rgb(125, 207, 255),
+            vim_insert_bg: Color::Rgb(158, 206, 106),
+            vim_visual_bg: Color::Rgb(187, 154, 247),
+            vim_command_bg: Color::Rgb(224, 175, 104),
+            vim_text: Color::Rgb(16, 18, 25),
         }
     }
 
@@ -90,11 +93,11 @@ impl ThemeColors {
             border: Color::Rgb(76, 82, 99),
             modal_bg: Color::Rgb(32, 35, 42),
             modal_border: Color::Rgb(97, 175, 239),
-            vim_normal_bg: Color::Rgb(97, 175, 239),     // Blue
-            vim_insert_bg: Color::Rgb(152, 195, 121),    // Green
-            vim_visual_bg: Color::Rgb(198, 120, 221),    // Purple
-            vim_command_bg: Color::Rgb(229, 192, 123),   // Yellow
-            vim_text: Color::Rgb(32, 35, 42),            // Dark text
+            vim_normal_bg: Color::Rgb(97, 175, 239),
+            vim_insert_bg: Color::Rgb(152, 195, 121),
+            vim_visual_bg: Color::Rgb(198, 120, 221),
+            vim_command_bg: Color::Rgb(229, 192, 123),
+            vim_text: Color::Rgb(32, 35, 42),
         }
     }
 
@@ -112,11 +115,11 @@ impl ThemeColors {
             border: Color::Rgb(102, 92, 84),
             modal_bg: Color::Rgb(29, 32, 33),
             modal_border: Color::Rgb(131, 165, 152),
-            vim_normal_bg: Color::Rgb(131, 165, 152),    // Teal
-            vim_insert_bg: Color::Rgb(184, 187, 38),     // Yellow-green
-            vim_visual_bg: Color::Rgb(211, 134, 155),    // Pink
-            vim_command_bg: Color::Rgb(250, 189, 47),    // Orange
-            vim_text: Color::Rgb(29, 32, 33),            // Dark text
+            vim_normal_bg: Color::Rgb(131, 165, 152),
+            vim_insert_bg: Color::Rgb(184, 187, 38),
+            vim_visual_bg: Color::Rgb(211, 134, 155),
+            vim_command_bg: Color::Rgb(250, 189, 47),
+            vim_text: Color::Rgb(29, 32, 33),
         }
     }
 
@@ -134,11 +137,77 @@ impl ThemeColors {
             border: Color::Rgb(67, 76, 94),
             modal_bg: Color::Rgb(36, 40, 51),
             modal_border: Color::Rgb(136, 192, 208),
-            vim_normal_bg: Color::Rgb(136, 192, 208),    // Frost blue
-            vim_insert_bg: Color::Rgb(163, 190, 140),    // Aurora green
-            vim_visual_bg: Color::Rgb(180, 142, 173),    // Aurora purple
-            vim_command_bg: Color::Rgb(235, 203, 139),   // Aurora yellow
-            vim_text: Color::Rgb(36, 40, 51),            // Dark text
+            vim_normal_bg: Color::Rgb(136, 192, 208),
+            vim_insert_bg: Color::Rgb(163, 190, 140),
+            vim_visual_bg: Color::Rgb(180, 142, 173),
+            vim_command_bg: Color::Rgb(235, 203, 139),
+            vim_text: Color::Rgb(36, 40, 51),
+        }
+    }
+
+    fn monokai() -> Self {
+        Self {
+            background: Color::Rgb(39, 40, 34),
+            foreground: Color::Rgb(248, 248, 242),
+            primary: Color::Rgb(102, 217, 239),
+            secondary: Color::Rgb(73, 72, 62),
+            accent: Color::Rgb(174, 129, 255),
+            success: Color::Rgb(166, 226, 46),
+            warning: Color::Rgb(253, 151, 31),
+            error: Color::Rgb(249, 38, 114),
+            muted: Color::Rgb(117, 113, 94),
+            border: Color::Rgb(90, 89, 76),
+            modal_bg: Color::Rgb(29, 30, 24),
+            modal_border: Color::Rgb(102, 217, 239),
+            vim_normal_bg: Color::Rgb(102, 217, 239),
+            vim_insert_bg: Color::Rgb(166, 226, 46),
+            vim_visual_bg: Color::Rgb(174, 129, 255),
+            vim_command_bg: Color::Rgb(253, 151, 31),
+            vim_text: Color::Rgb(29, 30, 24),
+        }
+    }
+
+    fn solarized_dark() -> Self {
+        Self {
+            background: Color::Rgb(0, 43, 54),
+            foreground: Color::Rgb(131, 148, 150),
+            primary: Color::Rgb(38, 139, 210),
+            secondary: Color::Rgb(7, 54, 66),
+            accent: Color::Rgb(108, 113, 196),
+            success: Color::Rgb(133, 153, 0),
+            warning: Color::Rgb(181, 137, 0),
+            error: Color::Rgb(220, 50, 47),
+            muted: Color::Rgb(88, 110, 117),
+            border: Color::Rgb(101, 123, 131),
+            modal_bg: Color::Rgb(7, 54, 66),
+            modal_border: Color::Rgb(38, 139, 210),
+            vim_normal_bg: Color::Rgb(38, 139, 210),
+            vim_insert_bg: Color::Rgb(133, 153, 0),
+            vim_visual_bg: Color::Rgb(108, 113, 196),
+            vim_command_bg: Color::Rgb(181, 137, 0),
+            vim_text: Color::Rgb(0, 43, 54),
+        }
+    }
+
+    fn dracula() -> Self {
+        Self {
+            background: Color::Rgb(40, 42, 54),
+            foreground: Color::Rgb(248, 248, 242),
+            primary: Color::Rgb(139, 233, 253),
+            secondary: Color::Rgb(68, 71, 90),
+            accent: Color::Rgb(255, 121, 198),
+            success: Color::Rgb(80, 250, 123),
+            warning: Color::Rgb(241, 250, 140),
+            error: Color::Rgb(255, 85, 85),
+            muted: Color::Rgb(98, 114, 164),
+            border: Color::Rgb(68, 71, 90),
+            modal_bg: Color::Rgb(30, 32, 44),
+            modal_border: Color::Rgb(139, 233, 253),
+            vim_normal_bg: Color::Rgb(139, 233, 253),
+            vim_insert_bg: Color::Rgb(80, 250, 123),
+            vim_visual_bg: Color::Rgb(255, 121, 198),
+            vim_command_bg: Color::Rgb(241, 250, 140),
+            vim_text: Color::Rgb(30, 32, 44),
         }
     }
 }
@@ -154,6 +223,8 @@ pub struct ThemeStyles {
     pub help_text: Style,
     pub accent: Style,
     pub muted: Style,
+    pub cursor_fg: Color,
+    pub cursor_bg: Color,
 }
 
 impl ThemeStyles {
@@ -169,6 +240,8 @@ impl ThemeStyles {
             help_text: Style::default().fg(colors.muted),
             accent: Style::default().fg(colors.accent),
             muted: Style::default().fg(colors.muted),
+            cursor_fg: colors.vim_text,
+            cursor_bg: colors.primary,
         }
     }
 }

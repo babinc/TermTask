@@ -1,9 +1,10 @@
 use crate::models::{ColorTheme, DateFormat};
-use crate::ui::themes::{ThemeStyles, ThemeColors};
+use crate::ui::styling::{ThemeStyles, ThemeColors};
+use super::multi_select::MultiSelect;
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::Style,
-    widgets::{Block, Borders, Clear, List, ListItem, Paragraph, Wrap},
+    widgets::{Block, Borders, Clear, Paragraph, Wrap},
     Frame,
 };
 
@@ -30,41 +31,49 @@ pub struct SettingsModal {
     pub active: bool,
     pub selected_index: usize,
     settings: Vec<SettingItem>,
-    themes: Vec<ColorTheme>,
-    date_formats: Vec<DateFormat>,
+    theme_selector: MultiSelect<ColorTheme>,
+    date_format_selector: MultiSelect<DateFormat>,
+    pub multi_select_active: bool,
 }
 
 impl SettingsModal {
     pub fn new() -> Self {
-        let themes = ColorTheme::all();
-        let date_formats = DateFormat::all();
+        let default_theme = ColorTheme::default();
+        let default_date_format = DateFormat::default();
         Self {
             active: false,
             selected_index: 0,
             settings: vec![
-                SettingItem::Theme(themes[0].clone()),
-                SettingItem::DateFormat(date_formats[0].clone()),
+                SettingItem::Theme(default_theme.clone()),
+                SettingItem::DateFormat(default_date_format.clone()),
                 SettingItem::VimMode(false),
                 SettingItem::CompactMode(false),
             ],
-            themes,
-            date_formats,
+            theme_selector: MultiSelect::new("Select Theme".to_string(), default_theme),
+            date_format_selector: MultiSelect::new("Select Date Format".to_string(), default_date_format),
+            multi_select_active: false,
         }
     }
 
     pub fn open(&mut self, current_theme: &ColorTheme, date_format: &DateFormat, vim_mode: bool, compact_mode: bool) {
         self.active = true;
         self.selected_index = 0;
+        self.multi_select_active = false;
         self.settings = vec![
             SettingItem::Theme(current_theme.clone()),
             SettingItem::DateFormat(date_format.clone()),
             SettingItem::VimMode(vim_mode),
             SettingItem::CompactMode(compact_mode),
         ];
+        self.theme_selector = MultiSelect::new("Select Theme".to_string(), current_theme.clone());
+        self.date_format_selector = MultiSelect::new("Select Date Format".to_string(), date_format.clone());
     }
 
     pub fn close(&mut self) {
         self.active = false;
+        self.multi_select_active = false;
+        self.theme_selector.close();
+        self.date_format_selector.close();
     }
 
     pub fn next_item(&mut self) {
@@ -81,21 +90,13 @@ impl SettingsModal {
 
     pub fn toggle_selected(&mut self) {
         match &mut self.settings[self.selected_index] {
-            SettingItem::Theme(current_theme) => {
-                let current_index = self.themes
-                    .iter()
-                    .position(|t| t == current_theme)
-                    .unwrap_or(0);
-                let next_index = (current_index + 1) % self.themes.len();
-                *current_theme = self.themes[next_index].clone();
+            SettingItem::Theme(_) => {
+                self.multi_select_active = true;
+                self.theme_selector.open();
             }
-            SettingItem::DateFormat(current_format) => {
-                let current_index = self.date_formats
-                    .iter()
-                    .position(|f| f == current_format)
-                    .unwrap_or(0);
-                let next_index = (current_index + 1) % self.date_formats.len();
-                *current_format = self.date_formats[next_index].clone();
+            SettingItem::DateFormat(_) => {
+                self.multi_select_active = true;
+                self.date_format_selector.open();
             }
             SettingItem::VimMode(enabled) => {
                 *enabled = !*enabled;
@@ -103,6 +104,65 @@ impl SettingsModal {
             SettingItem::CompactMode(enabled) => {
                 *enabled = !*enabled;
             }
+        }
+    }
+
+    pub fn handle_multi_select_input(&mut self, key: crossterm::event::KeyCode) -> bool {
+        if !self.multi_select_active {
+            return false;
+        }
+
+        match key {
+            crossterm::event::KeyCode::Esc => {
+                self.multi_select_active = false;
+                self.theme_selector.close();
+                self.date_format_selector.close();
+                true
+            }
+            crossterm::event::KeyCode::Enter => {
+                if self.theme_selector.active {
+                    let new_theme = self.theme_selector.select_current();
+                    self.settings[self.selected_index] = SettingItem::Theme(new_theme);
+                } else if self.date_format_selector.active {
+                    let new_format = self.date_format_selector.select_current();
+                    self.settings[self.selected_index] = SettingItem::DateFormat(new_format);
+                }
+                self.multi_select_active = false;
+                true
+            }
+            crossterm::event::KeyCode::Up | crossterm::event::KeyCode::Char('k') => {
+                if self.theme_selector.active {
+                    self.theme_selector.previous_item();
+                } else if self.date_format_selector.active {
+                    self.date_format_selector.previous_item();
+                }
+                true
+            }
+            crossterm::event::KeyCode::Down | crossterm::event::KeyCode::Char('j') => {
+                if self.theme_selector.active {
+                    self.theme_selector.next_item();
+                } else if self.date_format_selector.active {
+                    self.date_format_selector.next_item();
+                }
+                true
+            }
+            crossterm::event::KeyCode::Tab => {
+                if self.theme_selector.active {
+                    self.theme_selector.next_item();
+                } else if self.date_format_selector.active {
+                    self.date_format_selector.next_item();
+                }
+                true
+            }
+            crossterm::event::KeyCode::BackTab => {
+                if self.theme_selector.active {
+                    self.theme_selector.previous_item();
+                } else if self.date_format_selector.active {
+                    self.date_format_selector.previous_item();
+                }
+                true
+            }
+            _ => false,
         }
     }
 
@@ -155,9 +215,9 @@ impl SettingsModal {
             width,
             height,
         };
-        
+
         frame.render_widget(Clear, popup_area);
-        
+
         let modal_bg = Block::default()
             .style(Style::default().bg(colors.modal_bg));
         frame.render_widget(modal_bg, popup_area);
@@ -165,9 +225,9 @@ impl SettingsModal {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Length(3),   // Prompt section
-                Constraint::Min(5),      // Results section
-                Constraint::Length(1),   // Status line
+                Constraint::Length(3),
+                Constraint::Min(5),
+                Constraint::Length(1),
             ])
             .split(popup_area);
 
@@ -185,11 +245,11 @@ impl SettingsModal {
                 horizontal_bottom: "─",
             })
             .border_style(Style::default().fg(colors.modal_border))
-            .style(styles.normal.bg(colors.modal_bg));
+            .style(Style::default().fg(colors.foreground).bg(colors.modal_bg));
 
         let prompt_input = Paragraph::new("> Configure application settings")
             .block(prompt_block)
-            .style(styles.normal);
+            .style(Style::default().fg(colors.foreground).bg(colors.modal_bg));
 
         frame.render_widget(prompt_input, chunks[0]);
 
@@ -213,20 +273,25 @@ impl SettingsModal {
                 horizontal_bottom: "─",
             })
             .border_style(Style::default().fg(colors.modal_border))
-            .style(styles.normal.bg(colors.modal_bg));
+            .style(Style::default().fg(colors.foreground).bg(colors.modal_bg));
 
         let settings_paragraph = Paragraph::new(settings_display)
             .block(results_block)
-            .style(styles.normal)
+            .style(Style::default().fg(colors.foreground).bg(colors.modal_bg))
             .wrap(Wrap { trim: false });
 
         frame.render_widget(settings_paragraph, chunks[1]);
 
         let help_text = "↑↓/jk Navigate | Enter/Space Toggle | Esc Close";
         let status_line = Paragraph::new(help_text)
-            .style(styles.muted)
+            .style(Style::default().fg(colors.muted).bg(colors.modal_bg))
             .alignment(Alignment::Left);
 
         frame.render_widget(status_line, chunks[2]);
+
+        if self.multi_select_active {
+            self.theme_selector.render(frame, area, styles, colors);
+            self.date_format_selector.render(frame, area, styles, colors);
+        }
     }
 }

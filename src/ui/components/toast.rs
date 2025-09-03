@@ -1,6 +1,6 @@
-use crate::ui::themes::{ThemeStyles, ThemeColors};
+use crate::ui::styling::{ThemeStyles, ThemeColors};
 use ratatui::{
-    layout::{Alignment, Constraint, Direction, Layout, Margin, Rect},
+    layout::{Alignment, Rect},
     style::Style,
     text::Text,
     widgets::{Block, BorderType, Borders, Clear, Paragraph, Wrap},
@@ -113,16 +113,20 @@ impl ToastManager {
         self.toasts.retain(|toast| !toast.is_expired());
     }
 
+    pub fn has_active_toasts(&self) -> bool {
+        !self.toasts.is_empty()
+    }
+
     pub fn render(&mut self, frame: &mut Frame, area: Rect, styles: &ThemeStyles, colors: &ThemeColors) {
         self.update();
-        
+
         let toast_width = area.width.min(50);
         let toast_height = 4;
         let spacing = 1;
-        
+
         for (index, toast) in self.toasts.iter().enumerate() {
             let y_offset = index as u16 * (toast_height + spacing);
-            
+
             if y_offset + toast_height > area.height {
                 break;
             }
@@ -158,7 +162,7 @@ impl ToastManager {
                 .borders(Borders::ALL)
                 .border_type(BorderType::Rounded)
                 .border_style(adjusted_style)
-                .style(styles.normal.bg(colors.background));
+                .style(Style::default().fg(colors.foreground).bg(colors.modal_bg));
 
             let content = format!("{} {}", icon, toast.message);
             let paragraph = Paragraph::new(Text::from(content))

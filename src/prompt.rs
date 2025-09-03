@@ -3,9 +3,9 @@ use std::io::{self, Write};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TodoStorageChoice {
-    Project,    // todo.json - shared with team
-    Personal,   // .todo.json - private, gitignored  
-    Global,     // global storage - cross-project
+    Project,
+    Personal,
+    Global,
 }
 
 pub struct ProjectInitializer;
@@ -18,20 +18,20 @@ impl ProjectInitializer {
         println!();
         println!("You have 3 options for managing todos in this project:");
         println!();
-        
+
         println!("[1] Project todos (todo.json) - RECOMMENDED");
         println!("    • Shared with your team via git");
         println!("    • Committed to repository");
         println!("    • Everyone sees the same project tasks");
         println!("    • Great for: feature planning, bug lists, project milestones");
         println!();
-        
+
         println!("[2] Personal project notes (.todo.json)");
         println!("    • Private to you (added to .gitignore)");
         println!("    • Not shared with team");
         println!("    • Great for: personal reminders, learning notes, temp tasks");
         println!();
-        
+
         println!("[3] Global todos (continue current behavior)");
         println!("    • Stored in ~/.local/share/termtask/todos.json");
         println!("    • Cross-project tasks and general todos");
@@ -41,7 +41,7 @@ impl ProjectInitializer {
         loop {
             print!("Choice [1/2/3]: ");
             io::stdout().flush().unwrap();
-            
+
             let mut input = String::new();
             match io::stdin().read_line(&mut input) {
                 Ok(_) => {

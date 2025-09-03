@@ -1,4 +1,4 @@
-use crate::ui::themes::{ThemeStyles, ThemeColors};
+use crate::ui::styling::{ThemeStyles, ThemeColors};
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::Style,
@@ -9,7 +9,8 @@ use ratatui::{
 #[derive(Debug, Clone)]
 pub enum ConfirmationAction {
     Complete(String),
-    Delete(String), 
+    Delete(String),
+    DiscardUnsavedChanges,
 }
 
 impl ConfirmationAction {
@@ -17,6 +18,7 @@ impl ConfirmationAction {
         match self {
             ConfirmationAction::Complete(_) => "Complete Todo",
             ConfirmationAction::Delete(_) => "Delete Todo",
+            ConfirmationAction::DiscardUnsavedChanges => "Discard Changes",
         }
     }
 
@@ -24,6 +26,7 @@ impl ConfirmationAction {
         match self {
             ConfirmationAction::Complete(title) => format!("Complete todo \"{}\"?", title),
             ConfirmationAction::Delete(title) => format!("Delete todo \"{}\"?", title),
+            ConfirmationAction::DiscardUnsavedChanges => "You have unsaved changes. Discard them?".to_string(),
         }
     }
 }
@@ -80,14 +83,19 @@ impl ConfirmationModal {
             width,
             height,
         };
-        
+
         frame.render_widget(Clear, popup_area);
-        
+
+
+        let modal_bg = Block::default()
+            .style(Style::default().bg(colors.modal_bg));
+        frame.render_widget(modal_bg, popup_area);
+
         let modal_block = Block::default()
             .title(format!(" {} ", action.title()))
             .borders(Borders::ALL)
             .border_style(Style::default().fg(colors.modal_border))
-            .style(styles.normal.bg(colors.modal_bg));
+            .style(Style::default().fg(colors.foreground).bg(colors.modal_bg));
 
         let inner = modal_block.inner(popup_area);
         frame.render_widget(modal_block, popup_area);
@@ -103,7 +111,7 @@ impl ConfirmationModal {
             .split(inner);
 
         let message_paragraph = Paragraph::new(action.message())
-            .style(styles.normal)
+            .style(Style::default().fg(colors.foreground).bg(colors.modal_bg))
             .wrap(Wrap { trim: false })
             .alignment(Alignment::Center);
 
@@ -116,14 +124,14 @@ impl ConfirmationModal {
         };
 
         let options_paragraph = Paragraph::new(options_text)
-            .style(styles.normal)
+            .style(Style::default().fg(colors.foreground).bg(colors.modal_bg))
             .alignment(Alignment::Center);
 
         frame.render_widget(options_paragraph, chunks[2]);
 
         let help_text = "← → Navigate | Enter Confirm | Esc Cancel";
         let help_paragraph = Paragraph::new(help_text)
-            .style(styles.muted)
+            .style(Style::default().fg(colors.muted).bg(colors.modal_bg))
             .alignment(Alignment::Center);
 
         frame.render_widget(help_paragraph, chunks[3]);

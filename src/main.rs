@@ -13,19 +13,28 @@ use prompt::{ProjectInitializer, TodoStorageChoice};
 use ui::App;
 
 fn main() -> Result<()> {
-    let cli = Cli::parse();
+    use std::io::Write;
 
-    if cli.explain {
-        cli::explain_workflow();
-        return Ok(());
-    }
+    let log_file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open("/tmp/termtask.log")?;
+
+    env_logger::Builder::from_env("RUST_LOG")
+        .target(env_logger::Target::Pipe(Box::new(log_file)))
+        .format(|buf, record| {
+            writeln!(buf, "{}: {}", record.level(), record.args())
+        })
+        .init();
+
+    let cli = Cli::parse();
 
     match cli.command {
         Some(Commands::Init { personal }) => {
             handle_init_command(personal)?;
         }
         None => {
-            let mut app = App::new_with_options(cli.global)?;
+            let mut app = App::new_with_options(cli.global, cli.file)?;
             app.run()?;
         }
     }
@@ -48,7 +57,7 @@ fn handle_init_command(personal: bool) -> Result<()> {
         };
 
         let todo_path = ProjectInitializer::create_todo_file(&repo, choice.clone())?;
-        
+
         match choice {
             TodoStorageChoice::Project => {
                 println!("Created todo.json in project root");

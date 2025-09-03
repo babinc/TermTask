@@ -13,13 +13,13 @@ impl GitRepository {
 
     fn find_git_root(start_dir: &Path) -> Option<PathBuf> {
         let mut current = start_dir;
-        
+
         loop {
             let git_dir = current.join(".git");
             if git_dir.exists() {
                 return Some(current.to_path_buf());
             }
-            
+
             current = current.parent()?;
         }
     }
@@ -55,7 +55,7 @@ impl GitRepository {
         use std::io::ErrorKind;
 
         let gitignore_path = self.get_gitignore_path();
-        
+
         let mut content = match read_to_string(&gitignore_path) {
             Ok(content) => content,
             Err(e) if e.kind() == ErrorKind::NotFound => String::new(),

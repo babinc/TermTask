@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use crate::ui::components::modals::multi_select::MultiSelectItem;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum DateFormat {
@@ -40,6 +41,16 @@ impl DateFormat {
     }
 }
 
+impl MultiSelectItem for DateFormat {
+    fn name(&self) -> &str {
+        self.name()
+    }
+
+    fn all() -> Vec<Self> {
+        Self::all()
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum ColorTheme {
     CatppuccinMocha,
@@ -47,6 +58,9 @@ pub enum ColorTheme {
     OneDark,
     GruvboxDark,
     Nord,
+    Monokai,
+    SolarizedDark,
+    Dracula,
 }
 
 impl Default for ColorTheme {
@@ -63,6 +77,9 @@ impl ColorTheme {
             ColorTheme::OneDark => "One Dark",
             ColorTheme::GruvboxDark => "Gruvbox Dark",
             ColorTheme::Nord => "Nord",
+            ColorTheme::Monokai => "Monokai",
+            ColorTheme::SolarizedDark => "Solarized Dark",
+            ColorTheme::Dracula => "Dracula",
         }
     }
 
@@ -73,6 +90,9 @@ impl ColorTheme {
             ColorTheme::OneDark,
             ColorTheme::GruvboxDark,
             ColorTheme::Nord,
+            ColorTheme::Monokai,
+            ColorTheme::SolarizedDark,
+            ColorTheme::Dracula,
         ]
     }
 
@@ -82,8 +102,21 @@ impl ColorTheme {
             ColorTheme::TokyoNight => ColorTheme::OneDark,
             ColorTheme::OneDark => ColorTheme::GruvboxDark,
             ColorTheme::GruvboxDark => ColorTheme::Nord,
-            ColorTheme::Nord => ColorTheme::CatppuccinMocha,
+            ColorTheme::Nord => ColorTheme::Monokai,
+            ColorTheme::Monokai => ColorTheme::SolarizedDark,
+            ColorTheme::SolarizedDark => ColorTheme::Dracula,
+            ColorTheme::Dracula => ColorTheme::CatppuccinMocha,
         }
+    }
+}
+
+impl MultiSelectItem for ColorTheme {
+    fn name(&self) -> &str {
+        self.name()
+    }
+
+    fn all() -> Vec<Self> {
+        Self::all()
     }
 }
 
