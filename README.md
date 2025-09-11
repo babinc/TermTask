@@ -8,7 +8,7 @@ A beautiful, keyboard-driven terminal todo application built with Rust. Features
 
 - ✨ **Split-screen interface** - Active todos on the left, completed on the right
 - 🎨 **Multiple color themes** - Catppuccin Mocha, Nord, Dracula, and High Contrast
-- 📝 **Rich markdown support** - Format your todo descriptions with headers, lists, code blocks, and more
+- 📝 **Markdown support** - Use markdown formatting in todo descriptions
 - ⌨️ **Keyboard-driven** - Fast and efficient workflow without touching the mouse
 - 💾 **JSON storage** - Human-readable, git-friendly todo storage
 - 🔧 **Configurable** - Customizable themes and adjustable split-screen ratio
@@ -45,13 +45,22 @@ termtask
 
 # Use a custom todo file
 termtask --file my_todos.json
+
+# Force global todo storage
+termtask --global
+
+# Initialize project-specific todos in current directory
+termtask init
+
+# Initialize personal project todos (.todo.json)
+termtask init --personal
 ```
 
 ### Keyboard Shortcuts
 
 | Key | Action |
 |-----|--------|
-| `a` | Add new todo |
+| `+` | Add new todo |
 | `r` | Edit selected todo (title and description) |
 | `Space` | Toggle todo completion status |
 | `e` | Expand/collapse todo description |
@@ -64,40 +73,20 @@ termtask --file my_todos.json
 | `s` | Open settings modal |
 | `q` | Quit application |
 
-### Vim Mode
+### Vim Mode in Text Editor
 
-TermTask includes built-in Vim keybindings for navigation and editing:
+TermTask includes Vim keybindings in the text editor for adding and editing todos:
 
-#### Navigation
-- `j` - Move down
-- `k` - Move up  
-- `g` - Jump to first todo
-- `G` - Jump to last todo
+- `:w` or `:x` - Save and close
+- `:q` - Cancel without saving
+- `Esc` - Exit insert mode
+- Standard vim motions and editing commands within the text editor
 
-#### Actions
-- `i` or `a` - Insert mode (add new todo)
-- `o` - Open new todo below current selection
-- `O` - Open new todo above current selection
-- `dd` - Delete current todo
-- `x` - Toggle todo completion
-- `v` - Expand/collapse description (visual mode)
-
-#### Pane Management
-- `h` - Switch to left pane (active todos)
-- `l` - Switch to right pane (completed todos)
-
-Vim mode is automatically enabled and works alongside the standard keybindings.
+Vim mode can be enabled in the configuration file.
 
 ### Markdown Support
 
-Todo descriptions support full markdown formatting:
-
-- **Headers** - `## Section Title`
-- **Bold/Italic** - `**bold**`, `*italic*`
-- **Lists** - Both ordered and unordered
-- **Code blocks** - With syntax highlighting
-- **Tables** - For structured data
-- **Blockquotes** - `> Note: Important info`
+Todo descriptions support markdown formatting including headers, lists, code blocks, tables, and blockquotes. The markdown is stored in the todo descriptions and displayed when expanded.
 
 ### Configuration
 
@@ -106,21 +95,32 @@ TermTask follows XDG Base Directory specifications:
 - **Todos**: `~/.local/share/termtask/todos.json`
 - **Config**: `~/.config/termtask/config.toml`
 
-The configuration file allows you to set your preferred theme and split ratio:
+The configuration file allows you to customize the appearance and behavior:
 
 ```toml
-theme = "Catppuccin"
-split_ratio = 0.65
-date_format = "Relative"
+theme = "CatppuccinMocha"  # Options: CatppuccinMocha, Nord, Dracula, TokyoNight, OneDark, GruvboxDark, Monokai, SolarizedDark
+
+[ui]
+split_ratio = 50  # Percentage for active todos pane (0-100)
+date_format = "Relative"  # Options: Relative, Absolute, None
+vim_mode = false
+show_completed_count = true
+auto_expand_descriptions = false
+compact_mode = false
+status_bar_visible = true
 ```
 
 ### Themes
 
-Choose from 4 beautiful built-in themes:
-- **Catppuccin Mocha** - Soft pastel colors
-- **Nord** - Arctic, north-bluish color palette
+Choose from 8 beautiful built-in themes:
+- **CatppuccinMocha** - Soft pastel colors
+- **Nord** - Arctic, north-bluish color palette  
 - **Dracula** - Dark theme with vibrant colors
-- **High Contrast** - Maximum readability
+- **TokyoNight** - Tokyo night lights inspired
+- **OneDark** - Atom One Dark inspired
+- **GruvboxDark** - Retro groove color scheme
+- **Monokai** - Classic sublime colors
+- **SolarizedDark** - Precision colors for machines and people
 
 ## Development
 
