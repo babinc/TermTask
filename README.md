@@ -64,6 +64,30 @@ termtask --file my_todos.json
 | `s` | Open settings modal |
 | `q` | Quit application |
 
+### Vim Mode
+
+TermTask includes built-in Vim keybindings for navigation and editing:
+
+#### Navigation
+- `j` - Move down
+- `k` - Move up  
+- `g` - Jump to first todo
+- `G` - Jump to last todo
+
+#### Actions
+- `i` or `a` - Insert mode (add new todo)
+- `o` - Open new todo below current selection
+- `O` - Open new todo above current selection
+- `dd` - Delete current todo
+- `x` - Toggle todo completion
+- `v` - Expand/collapse description (visual mode)
+
+#### Pane Management
+- `h` - Switch to left pane (active todos)
+- `l` - Switch to right pane (completed todos)
+
+Vim mode is automatically enabled and works alongside the standard keybindings.
+
 ### Markdown Support
 
 Todo descriptions support full markdown formatting:
